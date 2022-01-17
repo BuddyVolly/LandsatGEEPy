@@ -1,3 +1,4 @@
+import ee
 from eelsat.lsat.brdf_correction import apply as apply_brdf
 
 
