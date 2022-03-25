@@ -3,12 +3,13 @@ from eelsat.lsat.brdf_correction import apply as apply_brdf
 
 
 def calculate_ndvi(image):
-    return (image.normalizedDifference(['nir', 'red']).rename('ndvi')
-            .multiply(10000).int16()
-            .copyProperties(image)
-            .set('system:time_start', image.get('system:time_start'))
-            .set('system:footprint', image.get('system:footprint'))
-            )
+    return (
+        image.addBands(
+            image.normalizedDifference(['nir', 'red']).rename('ndvi').multiply(10000).int16()
+        ).copyProperties(image)
+        .set('system:time_start', image.get('system:time_start'))
+        .set('system:footprint', image.get('system:footprint'))
+    )
 
 def bitwiseExtract(value, fromBit, toBit=None):
     if not toBit:
@@ -42,7 +43,7 @@ def create_collection(collection, start, end, aoi):
     return coll.map(cloudMaskLsatSR)
 
 
-def landsat_collection(start, end, aoi, l8=True, l7=True, l5=True, l4=True, brdf=True):
+def landsat_collection(start, end, aoi, l8=True, l7=True, l5=True, l4=True, brdf=True, bands="ndvi"):
 
     coll = None
 
@@ -95,4 +96,4 @@ def landsat_collection(start, end, aoi, l8=True, l7=True, l5=True, l4=True, brdf
     if brdf:
         coll.map(apply_brdf)
 
-    return coll.map(calculate_ndvi)
+    return coll.map(calculate_ndvi).select(bands)
